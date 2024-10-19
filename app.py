@@ -40,10 +40,6 @@ def start_counting():
 
     cap = cv2.VideoCapture(0)
 
-    #if config['save_video']:
-        #fourcc = cv2.VideoWriter_fourcc('D', 'I', 'V', 'X')
-        #out = cv2.VideoWriter(fn_out, fourcc, 25.0, (640, 480))
-
     with open(fn_yaml, 'r') as stream:
         object_area_data = yaml.safe_load(stream)
 
@@ -135,10 +131,10 @@ def start_counting():
     cv2.destroyAllWindows()
     return st.session_state.total_count
 
-def brand_recognition(image_path):
+def brand_recognition(image_data):
     """Recognizes brands and displays bounding boxes on the image."""
-    results = model(image_path, conf=0.25)
-    image = cv2.imread(image_path)
+    image = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)
+    results = model(image, conf=0.25)
 
     detected_brands = []
 
@@ -149,13 +145,11 @@ def brand_recognition(image_path):
                 brand_name = result.names[class_id]
                 detected_brands.append(brand_name)
 
-                # Draw bounding box on the image
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 cv2.putText(image, brand_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 
                             0.5, (0, 255, 0), 2)
 
-    # Convert the image to RGB for Streamlit display
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     st.image(image_rgb, caption="Processed Image with Detected Brands", use_column_width=True)
 
@@ -187,31 +181,17 @@ def main():
 
     st.title("Brand Recognition")
 
-    # Predefined images for selection
-    predefined_images = [
-        "test images\\1.jpg",  # Replace with your actual image file names
-        "test images\\2.jpg",
-        "test images\\3.jpg"
-    ]
-
-    # Create a dropdown for selecting predefined images
+    predefined_images = ["test images\\1.jpg", "test images\\2.jpg", "test images\\3.jpg"]
     selected_image = st.selectbox("Select Images for Trial", predefined_images)
 
     if st.button("Brand Recognition"):
-        # Assuming the images are stored in a specific directory
-        image_path = os.path.join(selected_image)  # Update this path
-        brand_recognition(image_path)
+        brand_recognition(open(selected_image, "rb").read())
 
-    # Upload file functionality remains unchanged
     uploaded_file = st.file_uploader("Upload Your Image", type=["jpg", "jpeg", "png"])
 
-    if uploaded_file is not None:
-        temp_image_path = os.path.join("temp", uploaded_file.name)
-        with open(temp_image_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-
+    if uploaded_file:
         if st.button("Start Brand Recognition"):
-            brand_recognition(temp_image_path)
+            brand_recognition(uploaded_file.read())
 
 if __name__ == "__main__":
     main()
