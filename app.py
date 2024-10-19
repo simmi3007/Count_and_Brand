@@ -26,7 +26,7 @@ def start_counting():
     ws = wb.active
     ws.append(("datetime", "total_output", "minute", "average ppm", "ct", "ppm"))
 
-    fn_yaml = r"datasets\area.yml"
+    fn_yaml = r"area.yml"
     config = {
         'save_video': False,
         'text_overlay': True,
@@ -181,7 +181,7 @@ def main():
 
     st.title("Brand Recognition")
 
-    predefined_images = ["test images\1.jpg", "test images\2.jpg", "test images\3.jpg"]
+    predefined_images = ["1.jpg", "2.jpg", "3.jpg"]
     selected_image = st.selectbox("Select Images for Trial", predefined_images)
 
     if st.button("Brand Recognition"):
